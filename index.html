@@ -135,41 +135,45 @@
                     <i class="bi bi-people-fill me-2 text-light position-relative">
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                             6
-                            <span class="visually-hidden">unread messages</span>
                           </span>
                     </i>
                 </p>
                 
-                <div class="bg-secondary me-5" style="border-radius: 30px;">
-                    <p class="mx-3 text-light py-1">
-                        <span class="fw-bold">User 1</span>
-                        wsg joren
+                <ul id="messages">
+                    <div class="bg-secondary me-5" style="border-radius: 30px;">
+                        <p class="mx-3 text-light py-1">
+                            <span class="fw-bold">User 1</span>
+                            wsg joren
+    
+                            <br>
+                            <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
+                        </p>
+                    </div>
+                    <div class="bg-secondary ms-5" style="border-radius: 30px;">
+                        <p class="mx-3 text-light py-1">
+                            i am fine
+                            <br>
+                            <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
+                        </p>
+                    </div>
+                    <div class="bg-secondary me-5" style="border-radius: 30px;">
+                        <p class="mx-3 text-light py-1">
+                            <span class="fw-bold">User 1</span>
+                            okie dokie
+                            <br>
+                            <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
+                        </p>
+                    </div>
+                </ul>
 
-                        <br>
-                        <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
-                    </p>
-                </div>
-                <div class="bg-secondary ms-5" style="border-radius: 30px;">
-                    <p class="mx-3 text-light py-1">
-                        i am fine
-                        <br>
-                        <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
-                    </p>
-                </div>
-                <div class="bg-secondary me-5" style="border-radius: 30px;">
-                    <p class="mx-3 text-light py-1">
-                        <span class="fw-bold">User 1</span>
-                        okie dokie
-                        <br>
-                        <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
-                    </p>
-                </div>
                 <div style="position: absolute; bottom: 0;">
                     <hr class="text-light">
-                    <input type="text" class="py-2 ps-3" style="border-radius: 30px;" placeholder="Say something...">
-                    <button class="btn">
-                        <i class="bi bi-send-fill me-2 text-light"></i>
-                    </button>
+                    <form id="form" action="">
+                        <input type="text" class="py-2 ps-3" id="input" style="border-radius: 30px;" placeholder="Say something...">
+                        <button class="btn">
+                            <i class="bi bi-send-fill me-2 text-light"></i>
+                        </button>
+                    </form>
                 </div>
                 
             </div>
@@ -177,34 +181,108 @@
     </div>
 
     <script>
-        const token = 'BQAFs2ghlWadsSvgxtI7HuUPOnY_RJtnLumHe5yfkebQx6FGt1BJkV3oo75b0dl-eK3C_dqNdKe8Lunk-XjuX733D4x2N3VdkgZF0as0D2r813KQHcKOyxwmXYVtv1BXehNtvEVDHtRPacHFeKk0HqMS80mNObo1F-4GZIMnhZxIDJ7IwIK8lxrLC6lkcBUHZeWclFRbp447x7rnwexBi0fHomVMLdv_6drOApvrnvuO_ZJLsbcXV28FPHuxzNXXd9rRE_rC5FMIb2OKuqND042Q';
-        async function fetchWebApi(endpoint, method, body) {
-            const res = await fetch(`https://api.spotify.com/${endpoint}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                    method,
-                    body:JSON.stringify(body)
-            });
-            return await res.json();
-        }
+        const id = '11dFghVXANMlKmJXsNCbNl'
+        const token = '146395d6cb6d4e0093984a67141b5bed';
+        // async function fetchWebApi(endpoint, method, body) {
+        //     const res = await fetch(`https://api.spotify.com/${endpoint}`, {
+        //         headers: {
+        //             Authorization: `Bearer ${token}`,
+        //         },
+        //             method,
+        //             body:JSON.stringify(body)
+        //     });
+        //     return await res.json();
+        // }
 
         async function getTopTracks(){
-            return (await fetchWebApi(
-                'v1/me/top/tracks?time_range=long_term&limit=5', 'GET'
-            )).items;
+            const res = await fetch(`https://api.spotify.com/v1/me/top/tracks?limit=5`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            }).then((res) => {
+                console.log(res)
+            }).catch((err) => {
+                console.error(err)
+            });
+            // return (await fetchWebApi(
+            //     `https://api.spotify.com/v1/me/top/tracks?limit=5`, 'GET'
+            // )).items;
         }
 
         async function fetchData() {
             const topTracks = await getTopTracks();
-            console.log(
-                topTracks?.map(
-                    ({name, artists}) =>
-                    `${name} by ${artists.map(artist => artist.name).join(', ')}`
-                )
-            );
+            // console.log(
+            //     topTracks?.map(
+            //         ({name, artists}) =>
+            //         `${name} by ${artists.map(artist => artist.name).join(', ')}`
+            //     )
+            // );
+            console.log(topTracks)
         }
         fetchData()
+    </script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (input.value) {
+                const message = input.value
+                socket.emit('chat message', {name, message});
+                input.value = '';
+            }
+        });
+
+        socket.on('chat message', (msg) => {
+
+            const listItem = document.createElement('li');
+
+            if(msg.name == name) {
+                
+                listItem.innerHTML = `
+                    <div class="bg-secondary ms-5" style="border-radius: 30px;">
+                        <p class="mx-3 text-light py-1">
+                            ${msg.message} ${msg.name}
+                            <br>
+                            <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
+                        </p>
+                    </div>
+                `;
+            }
+            else {
+                listItem.innerHTML = `
+                    <div class="bg-secondary me-5" style="border-radius: 30px;">
+                        <p class="mx-3 text-light py-1">
+                            <span class="fw-bold">${msg.name}</span>
+                            ${msg.message}
+                            <br>
+                            <span class="fw-light" style="font-size: 15px;">1:10 PM</span>
+                        </p>
+                    </div>
+                `
+            }
+
+            messages.appendChild(listItem);
+        });
+
+        function generateRandomName() {
+            const japaneseNames = [
+                "Sakura", "Hikari", "Haruka", "Yuki", "Sora", "Akira", "Kazuki", "Yui",
+                "Haru", "Aoi", "Rin", "Ren", "Aki", "Kaito", "Momo", "Nana", "Kokoro",
+                "Satoshi", "Yuzuki", "Emi", "Shinji", "Ryu", "Yumi", "Rika", "Kotori",
+                "Takumi", "Mari", "Mitsuki", "Hinata", "Asuka"
+            ];
+            const randomIndex = Math.floor(Math.random() * japaneseNames.length);
+            return japaneseNames[randomIndex];
+        }
+        const name = generateRandomName();
+
     </script>
 
 </body>
