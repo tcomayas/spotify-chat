@@ -11,7 +11,7 @@ const io = new Server(server);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, 'index.html'));
+    res.sendFile(join(__dirname, 'index.html'));
 });
 
 io.on('connection', (socket) => {
@@ -28,5 +28,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(3000, () => {
-  console.log('server running at http://localhost:3000');
+    console.log('server running at http://localhost:3000');
 });
